@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:text="Tháng 11, 2016"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textViewSolarMonth"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textAlignment="center" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:text="&#9668;"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/btnPreviousDay"
+            android:layout_weight="1"
+            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+            android:gravity="right|center_vertical|center_horizontal" />
+
+        <TextView
+            android:text="25"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/textViewSolarDay"
+            android:layout_weight="1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textSize="36sp"
+            android:textAlignment="center" />
+
+        <Button
+            android:text="&#9658;"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/btnNextDay"
+            android:layout_weight="1"
+            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+            android:gravity="left|center_vertical|center_horizontal" />
+
+    </LinearLayout>
+
+    <TextView
+        android:text="Thứ 6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textViewDay"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textStyle="normal|bold"
+        android:textAlignment="center" />
+
+    <TextClock
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textClock"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textStyle="normal|bold"
+        android:textAlignment="center" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stretchColumns="*">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:text="Tháng 10"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewLunarMonth"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textAlignment="center"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:text="26"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewLunarDay"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textSize="30sp" />
+
+                <TextView
+                    android:text="Năm Bính Thân"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewLunarYear"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textAlignment="center"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:text="Tháng Can Chi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewMonthCanChi"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:text="Ngày Can Chi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewDayCanChi"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:text="Giờ Can Chi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewHourCanChi"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:text="Tiết"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textViewTiet"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textAlignment="center" />
+            </LinearLayout>
+        </TableRow>
+
+    </TableLayout>
+
+    <TextView
+        android:text="Giờ hoàng đạo:"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textViewGioHoangDao" />
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/recycler_view"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+</LinearLayout>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_view_event"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.vanpt.lunarcalendar.activities.ViewEventActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:id="@+id/layout_view_event">
+
+        <TextView
+            android:text="Event Name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewEventName"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium.Inverse"
+            android:textStyle="normal|bold" />
+
+        <TextView
+            android:text="Time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewEventTime"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse" />
+
+        <TextView
+            android:text="Location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textViewEventLocation"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse" />
+    </LinearLayout>
+</LinearLayout>

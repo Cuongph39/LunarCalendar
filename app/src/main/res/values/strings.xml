@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Âm lịch Việt Nam</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_add_event">Thêm sự kiện</string>
+    <string name="action_today">Hôm nay</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="all_day_event">Sự kiện cả ngày</string>
+    <string name="go_to_solar_day">Đến ngày Dương lịch</string>
+    <string name="go_to_lunar_day">Đến ngày Âm lịch</string>
+</resources>

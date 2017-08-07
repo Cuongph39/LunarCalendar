@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="repetition_types">
+        <item name="once">Một lần</item>
+        <item name="daily">Hằng ngày</item>
+        <item name="weekly">Hằng tuần</item>
+        <item name="monthly">Hằng tháng</item>
+        <item name="yearly">Hằng năm</item>
+    </string-array>
+</resources>
