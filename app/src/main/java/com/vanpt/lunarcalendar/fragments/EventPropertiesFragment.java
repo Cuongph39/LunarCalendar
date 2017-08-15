@@ -1,5 +1,6 @@
 package com.vanpt.lunarcalendar.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -185,6 +186,18 @@ public class EventPropertiesFragment
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+        try {
+            mListener = (IDialogEventListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement IDialogEventListener");
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.context = activity;
         try {
             mListener = (IDialogEventListener) context;
         } catch (ClassCastException e) {

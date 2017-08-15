@@ -1,5 +1,6 @@
 package com.vanpt.lunarcalendar.fragments;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
@@ -57,6 +58,17 @@ public class GoToLunarDateFragment extends DialogFragment {
             mListener = (IDialogEventListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
+                    + " must implement IDialogEventListener");
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (IDialogEventListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
                     + " must implement IDialogEventListener");
         }
     }

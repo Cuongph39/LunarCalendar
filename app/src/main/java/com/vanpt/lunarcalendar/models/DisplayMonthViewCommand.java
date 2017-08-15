@@ -1,31 +1,26 @@
 package com.vanpt.lunarcalendar.models;
 
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.support.annotation.NonNull;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.vanpt.lunarcalendar.activities.MainActivity;
 import com.vanpt.lunarcalendar.R;
-import com.vanpt.lunarcalendar.activities.ViewEventActivity;
+import com.vanpt.lunarcalendar.activities.MainActivity;
 import com.vanpt.lunarcalendar.adapters.EventRecyclerAdapter;
 import com.vanpt.lunarcalendar.data.MyDbHandler;
+import com.vanpt.lunarcalendar.fragments.MonthDayFragment;
 import com.vanpt.lunarcalendar.interfaces.ICommand;
 import com.vanpt.lunarcalendar.utils.DateConverter;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Created by vanpt on 11/23/2016.
@@ -38,7 +33,9 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
     private RecyclerView recyclerView;
     private LinearLayoutManager layoutManager;
     private EventRecyclerAdapter adapter;
+    private DateObject previousDate;
     private DateObject currentDate;
+    private MonthDayFragment selectedDay;
 
     public DisplayMonthViewCommand(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -48,10 +45,25 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
     public void execute(DateObject date) throws Exception {
         this.currentDate = date;
         ViewGroup contentMain = this.mainActivity.getContentMainView();
-        contentMain.removeAllViews();
-        monthView = View.inflate(this.mainActivity, R.layout.layout_month, contentMain);
-        genrateCalendar(date, monthView);
+        if (previousDate == null ||
+                (previousDate.getMonth() != this.currentDate.getMonth() ||
+                previousDate.getYear() != this.currentDate.getYear())) {
+            contentMain.removeAllViews();
+            monthView = View.inflate(this.mainActivity, R.layout.layout_month, contentMain);
+            genrateCalendar(date, monthView);
+        }
+        else {
+            if (selectedDay != null) {
+                selectedDay.setSelected(false);
+            }
+            FragmentManager fm = this.mainActivity.getFragmentManager();
+            String tag = date.getYear() * 10000 + date.getMonth() * 100 + date.getDay() + "";
+            MonthDayFragment dayView = (MonthDayFragment) fm.findFragmentByTag(tag);
+            dayView.setSelected(true);
+            this.selectedDay = dayView;
+        }
         setDateInfo(date, monthView);
+        this.previousDate = currentDate;
     }
 
     private void setDateInfo(DateObject date, View monthView) {
@@ -93,9 +105,7 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
         int lastDayOfMonth = cal.getActualMaximum(Calendar.DATE);
         TableLayout tl = (TableLayout) monthView.findViewById(R.id.tableMonth);
         TableLayout.LayoutParams tableRowParams =
-                new TableLayout.LayoutParams
-                        (TableLayout.LayoutParams.MATCH_PARENT,TableLayout.LayoutParams.WRAP_CONTENT);
-
+                new TableLayout.LayoutParams(0,TableLayout.LayoutParams.WRAP_CONTENT, 1);
         final float scale = this.mainActivity.getResources().getDisplayMetrics().density;
         TableRow.LayoutParams textViewParams = new TableRow.LayoutParams(
                 (int)(40 * scale + 0.5f), (int)(40 * scale + 0.5f));
@@ -105,27 +115,14 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
         cal.set(date.getYear(), date.getMonth() - 1, 1);
         int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
         if (dayOfWeek > 1) {
-            Date t = cal.getTime();
             cal.add(Calendar.MONTH, -1);
-            t = cal.getTime();
             int lastDayOfPreviousMonth = cal.getActualMaximum(Calendar.DATE);
             for (int i = 0; i < dayOfWeek - 1; i++) {
                 int yyyy = cal.get(Calendar.YEAR);
                 int mm = cal.get(Calendar.MONTH) + 1;
                 int dd = (lastDayOfPreviousMonth - dayOfWeek + i + 2);
-                Button btn = createButton(dd, mm, yyyy);
-                int id = yyyy * 10000 + mm * 100 + dd;
-                DateObject d = new DateObject(dd, mm, yyyy, 0);
-                DateObject lunar = DateConverter. convertSolar2Lunar(d, this.mainActivity.getTimeZone());
-                btn.setTag(id);
-                String lunarDay = lunar.getDay() + "";
-                if (lunar.getDay() == 1) {
-                    lunarDay += "/" + lunar.getMonth();
-                }
-                btn.setText(dd + "     \n    " + lunarDay);
-                btn.setLayoutParams(textViewParams);
-                btn.setTextColor(Color.GRAY);
-                tr.addView(btn);
+                View dayView = createDayView(dd, mm, yyyy, false);
+                tr.addView(dayView);
             }
         }
         cal = Calendar.getInstance();
@@ -133,24 +130,9 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
             int yyyy = date.getYear();
             int mm = date.getMonth();
             int dd = i;
-            Button btn = createButton(dd, mm, yyyy);
-            int id = yyyy * 10000 + mm * 100 + dd;
-            DateObject d = new DateObject(dd, mm, yyyy, 0);
-            DateObject lunar = DateConverter. convertSolar2Lunar(d, this.mainActivity.getTimeZone());
-            btn.setTag(id);
-            String lunarDay = lunar.getDay() + "";
-            if (lunar.getDay() == 1) {
-                lunarDay += "/" + lunar.getMonth();
-            }
-            btn.setText(i + "     \n     " + lunarDay);
-            btn.setLayoutParams(textViewParams);
-            if (dayOfWeek == 1) {
-                btn.setTextColor(Color.RED);
-            } else if (dayOfWeek == 7) {
-                btn.setTextColor(Color.BLUE);
-            }
+            View dayView = createDayView(dd, mm, yyyy, true);
+            tr.addView(dayView);
             dayOfWeek += 1;
-            tr.addView(btn);
             if (dayOfWeek > 7) {
                 dayOfWeek = 1;
                 tl.addView(tr, tableRowParams);
@@ -166,49 +148,25 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
                 int yyyy = cal.get(Calendar.YEAR);
                 int mm = cal.get(Calendar.MONTH) + 1;
                 int dd = (i - dayOfWeek + 1);
-                Button btn = createButton(dd, mm, yyyy);
-                int id = yyyy * 10000 + mm * 100 + dd;
-                DateObject d = new DateObject(dd, mm, yyyy, 0);
-                DateObject lunar = DateConverter. convertSolar2Lunar(d, this.mainActivity.getTimeZone());
-                btn.setTag(id);
-                String solarDay = dd + "";
-                if (dd == 1) {
-                    solarDay += "/" + mm;
-                }
-                String lunarDay = lunar.getDay() + "";
-                if (lunar.getDay() == 1) {
-                    lunarDay += "/" + lunar.getMonth();
-                }
-                btn.setTextColor(Color.GRAY);
-                btn.setText(solarDay + "     \n     " + lunarDay);
-                btn.setLayoutParams(textViewParams);
-                tr.addView(btn);
+                View dayView = createDayView(dd, mm, yyyy, false);
+                tr.addView(dayView);
             }
         }
     }
 
-    @NonNull
-    private Button createButton(int day, int month, int year) {
-        Button btn = new Button(this.mainActivity, null, android.R.style.Widget_DeviceDefault_Button_Borderless_Small);
-        btn.setGravity(Gravity.CENTER);
-        GradientDrawable gd = new GradientDrawable();
-        if (day != this.mainActivity.getSelectedSolarDate().getDay() ||
-                month != this.mainActivity.getSelectedSolarDate().getMonth() ||
-                year != this.mainActivity.getSelectedSolarDate().getYear()) {
-            gd.setStroke(1, Color.GRAY);
+    private View createDayView(int day, int month, int year, boolean isCurrent) {
+        int id = year * 10000 + month * 100 + day;
+        MonthDayFragment frag = MonthDayFragment.newInstance(day, month, year, isCurrent);
+        if (this.currentDate.getDay() == day && this.currentDate.getMonth() == month) {
+            this.selectedDay = frag;
         }
-        else {
-            gd.setCornerRadius(5);
-            gd.setStroke(5, this.mainActivity.getResources().getColor(R.color.colorLightBlue));
-        }
-        if (day == this.mainActivity.getTodaySolarDate().getDay() &&
-                month == this.mainActivity.getTodaySolarDate().getMonth() &&
-                year == this.mainActivity.getTodaySolarDate().getYear()) {
-            gd.setColor(this.mainActivity.getResources().getColor(R.color.colorToday));
-        }
-        btn.setBackgroundDrawable(gd);
-        btn.setOnClickListener(this);
-        return btn;
+        LinearLayout l = new LinearLayout(this.mainActivity);
+        l.setId(id);
+        android.app.FragmentManager fm = this.mainActivity.getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.add(l.getId(), frag, id + "");
+        ft.commit();
+        return l;
     }
 
     @Override
@@ -249,17 +207,6 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
                         0
                 );
                 this.mainActivity.setSelectedSolarDate(newDate);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            int tag = (int) view.getTag();
-            try {
-                int year = tag / 10000;
-                int month = (tag - year * 10000) / 100;
-                int day = tag - year * 10000 - month * 100;
-                DateObject date = new DateObject(day, month, year, 0);
-                this.mainActivity.setSelectedSolarDate(date);
             } catch (Exception e) {
                 e.printStackTrace();
             }
