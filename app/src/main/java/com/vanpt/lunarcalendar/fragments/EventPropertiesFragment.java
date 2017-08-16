@@ -21,6 +21,7 @@ import android.widget.TimePicker;
 
 import com.vanpt.lunarcalendar.R;
 import com.vanpt.lunarcalendar.interfaces.IDialogEventListener;
+import com.vanpt.lunarcalendar.interfaces.IOnColorSetListener;
 import com.vanpt.lunarcalendar.models.DateObject;
 import com.vanpt.lunarcalendar.models.EventObject;
 import com.vanpt.lunarcalendar.utils.DateConverter;
@@ -35,7 +36,8 @@ public class EventPropertiesFragment
         extends DialogFragment
         implements View.OnClickListener,
         DatePickerDialog.OnDateSetListener,
-        TimePickerDialog.OnTimeSetListener {
+        TimePickerDialog.OnTimeSetListener,
+        IOnColorSetListener {
     IDialogEventListener mListener;
     private Context context;
     private int currentPickerId;
@@ -52,6 +54,7 @@ public class EventPropertiesFragment
     private Spinner spinnerRepetition;
     private EventObject event;
     private CheckBox chkAllDay;
+    private View view;
 
     public EventPropertiesFragment() throws Exception {
         event = new EventObject("Sự kiện mới");
@@ -74,19 +77,19 @@ public class EventPropertiesFragment
         this.event = event;
         Calendar cal = Calendar.getInstance();
         cal.setTime(event.getFromDate());
-        startDateLunar.setYear(cal.get(Calendar.YEAR));
-        startDateLunar.setMonth(cal.get(Calendar.MONTH) + 1);
-        startDateLunar.setDay(cal.get(Calendar.DAY_OF_MONTH));
-        startDateLunar.setHourOfDay(cal.get(Calendar.HOUR_OF_DAY));
-        startDateLunar.setMinute(cal.get(Calendar.MINUTE));
-        startDateSolar = DateConverter.convertLunar2Solar(startDateLunar, 7);
+        startDateSolar.setYear(cal.get(Calendar.YEAR));
+        startDateSolar.setMonth(cal.get(Calendar.MONTH) + 1);
+        startDateSolar.setDay(cal.get(Calendar.DAY_OF_MONTH));
+        startDateSolar.setHourOfDay(cal.get(Calendar.HOUR_OF_DAY));
+        startDateSolar.setMinute(cal.get(Calendar.MINUTE));
+        startDateLunar = DateConverter.convertSolar2Lunar(startDateSolar, 7);
         cal.setTime(event.getToDate());
-        endDateLunar.setYear(cal.get(Calendar.YEAR));
-        endDateLunar.setMonth(cal.get(Calendar.MONTH) + 1);
-        endDateLunar.setDay(cal.get(Calendar.DAY_OF_MONTH));
-        endDateLunar.setHourOfDay(cal.get(Calendar.HOUR_OF_DAY));
-        endDateLunar.setMinute(cal.get(Calendar.MINUTE));
-        endDateSolar = DateConverter.convertLunar2Solar(endDateLunar, 7);
+        endDateSolar.setYear(cal.get(Calendar.YEAR));
+        endDateSolar.setMonth(cal.get(Calendar.MONTH) + 1);
+        endDateSolar.setDay(cal.get(Calendar.DAY_OF_MONTH));
+        endDateSolar.setHourOfDay(cal.get(Calendar.HOUR_OF_DAY));
+        endDateSolar.setMinute(cal.get(Calendar.MINUTE));
+        endDateLunar = DateConverter.convertSolar2Lunar(endDateSolar, 7);
     }
 
     @Override
@@ -94,8 +97,9 @@ public class EventPropertiesFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View v = inflater.inflate(R.layout.fragment_event_properties, null);
-
+        this.view = v;
         Button btnChooseColor = (Button) v.findViewById(R.id.btnChooseColor);
+        btnChooseColor.setBackgroundColor(getResources().getColor(event.getColor()));
         btnChooseColor.setOnClickListener(this);
 
         editTextEventName = (EditText) v.findViewById(R.id.editTextEventName);
@@ -161,15 +165,15 @@ public class EventPropertiesFragment
                         event.setName(editTextEventName.getText().toString());
                         event.setLocation(editTextEventLocation.getText().toString());
                         Calendar cal = Calendar.getInstance();
-                        cal.set(startDateLunar.getYear(), startDateLunar.getMonth() - 1, startDateLunar.getDay(),
-                                startDateLunar.getHourOfDay(), startDateLunar.getMinute());
+                        cal.set(startDateSolar.getYear(), startDateSolar.getMonth() - 1, startDateSolar.getDay(),
+                                startDateSolar.getHourOfDay(), startDateSolar.getMinute());
                         event.setFromDate(cal.getTime());
-                        cal.set(endDateLunar.getYear(), endDateLunar.getMonth() - 1, endDateLunar.getDay(),
-                                endDateLunar.getHourOfDay(), endDateLunar.getMinute());
+                        cal.set(endDateSolar.getYear(), endDateSolar.getMonth() - 1, endDateSolar.getDay(),
+                                endDateSolar.getHourOfDay(), endDateSolar.getMinute());
                         event.setToDate(cal.getTime());
                         event.setAllDayEvent(chkAllDay.isChecked());
                         int pos = spinnerRepetition.getSelectedItemPosition();
-                        event.setRepititionType(pos);
+                        event.setRepetitionType(pos);
                         mListener.onDialogPositiveClick(EventPropertiesFragment.this);
                     }
                 })
@@ -235,6 +239,11 @@ public class EventPropertiesFragment
                     endDateSolar.getHourOfDay(), endDateSolar.getMinute(), true
             );
             timePickerDialog.show();
+        } else if (currentPickerId == R.id.btnChooseColor) {
+            EventColorFragment eventColorFragment = new EventColorFragment();
+            eventColorFragment.setSelectedColor(this.event.getColor());
+            eventColorFragment.setColorSetListener(this);
+            eventColorFragment.show(getFragmentManager(), "EventColorFragment");
         }
     }
 
@@ -286,5 +295,12 @@ public class EventPropertiesFragment
             endDateLunar.setHourOfDay(hourOfDay);
             endDateLunar.setMinute(minute);
         }
+    }
+
+    @Override
+    public void onColorSet(int color) {
+        Button btnChooseColor = (Button) view.findViewById(R.id.btnChooseColor);
+        event.setColor(color);
+        btnChooseColor.setBackgroundColor(getResources().getColor(event.getColor()));
     }
 }

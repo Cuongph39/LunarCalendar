@@ -3,12 +3,15 @@ package com.vanpt.lunarcalendar.activities;
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +35,7 @@ import com.vanpt.lunarcalendar.models.DisplayMonthViewCommand;
 import com.vanpt.lunarcalendar.models.EventObject;
 import com.vanpt.lunarcalendar.utils.DateConverter;
 
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,10 +55,15 @@ public class MainActivity extends AppCompatActivity
     private DateObject selectedSolarDate;
     private Thread mainThread = null;
     private BackgroundWorker backgroundWorker;
-    private int timeZone = 7;
     private CommandInvoker commandInvoker = new CommandInvoker();
     private int selectedNavMenuItem;
     private ArrayList<EventObject> events = new ArrayList<>();
+    private static final int UNIQUE_ID = 461984;
+    private static final String NUMBER_OF_LAUNCHES = "numberOfLaunches";
+
+    NotificationCompat.Builder notification;
+
+    public static int timeZone = 7;
     public static final int REQUEST_CODE = 5;
 
     public MainActivity() {
@@ -123,15 +132,25 @@ public class MainActivity extends AppCompatActivity
         MenuItem month = navMenu.getItem(0);
         onNavigationItemSelected(month);
 
-//        MyDbHandler dbHandler = new MyDbHandler(this, null, null, 1);
-//        // mock events
-//        EventObject e1 = new EventObject("Event One");
-//        e1.setId(1);
-//        e1.setLocation("Location");
-//        e1.setFromDate(new Date(1900, 1, 1));
-//        e1.setRepetitionType(RepetitionTypeEnum.DAILY);
-//        dbHandler.addEvent(e1);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        int numberOfLaunches = preferences.getInt(NUMBER_OF_LAUNCHES, 1);
+//        editor.putInt(NUMBER_OF_LAUNCHES, 0);
+//        editor.commit();
+        if (numberOfLaunches < 2) {
+            InputStream stream = getResources().openRawResource(
+                    getResources().getIdentifier("holidays", "raw", getPackageName()));
+            MyDbHandler dbHandler = new MyDbHandler(this, null, null, 1);
+            dbHandler.addCommonEvents(stream);
+            numberOfLaunches += 1;
+            editor.putInt(NUMBER_OF_LAUNCHES, numberOfLaunches);
+            editor.commit();
+        }
+        notification = new NotificationCompat.Builder(this);
+        notification.setAutoCancel(true);
     }
+
+
 
     @Override
     public void onBackPressed() {
@@ -315,7 +334,7 @@ public class MainActivity extends AppCompatActivity
                         cal.get(Calendar.MONTH) + 1,
                         cal.get(Calendar.YEAR)
                 );
-                DateObject solar = DateConverter.convertLunar2Solar(lunar, this.timeZone);
+                DateObject solar = DateConverter.convertLunar2Solar(lunar, timeZone);
                 this.setSelectedSolarDate(solar);
             } catch (Exception e) {
                 e.printStackTrace();

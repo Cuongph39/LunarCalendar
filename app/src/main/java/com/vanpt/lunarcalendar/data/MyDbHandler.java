@@ -7,12 +7,23 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.vanpt.lunarcalendar.R;
+import com.vanpt.lunarcalendar.activities.MainActivity;
+import com.vanpt.lunarcalendar.fragments.GoToLunarDateFragment;
+import com.vanpt.lunarcalendar.models.DateObject;
 import com.vanpt.lunarcalendar.models.EventObject;
+import com.vanpt.lunarcalendar.models.RepetitionTypeEnum;
 import com.vanpt.lunarcalendar.utils.DateConverter;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by vanpt on 12/1/2016.
@@ -38,7 +49,7 @@ public class MyDbHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String sqlCreateEventsTable =
-                "CREATE TABLE " + TABLE_EVENTS + //" IF NOT EXISTS" +
+                "CREATE TABLE IF NOT EXISTS " + TABLE_EVENTS + " " +
                         " (" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         COLUMN_NAME + " TEXT NOT NULL DEFAULT ('Sự kiện mới'), " +
                         COLUMN_COLOR + " INTEGER NOT NULL DEFAULT (" + R.color.colorRed + "), " +
@@ -106,7 +117,7 @@ public class MyDbHandler extends SQLiteOpenHelper {
             event.setLocation(cursor.getString(7));
             event.setFromDate(new Date(cursor.getLong(3)));
             event.setToDate(new Date(cursor.getLong(4)));
-            event.setRepititionType(cursor.getInt(5));
+            event.setRepetitionType(cursor.getInt(5));
             event.setAllDayEvent(cursor.getInt(6) != 0);
         } else {
             event = null;
@@ -129,16 +140,20 @@ public class MyDbHandler extends SQLiteOpenHelper {
             Date endDate = new Date(cursor.getLong(4));
             int repetitionType = cursor.getInt(5);
 
-            if (includes(startDate, endDate, repetitionType, theDate)) {
-                EventObject event = new EventObject(cursor.getString(1));
-                event.setId(cursor.getInt(0));
-                event.setColor(cursor.getInt(2));
-                event.setRepititionType(cursor.getInt(5));
-                event.setAllDayEvent(cursor.getInt(6) != 0);
-                event.setLocation(cursor.getString(7));
-                event.setFromDate(startDate);
-                event.setToDate(endDate);
-                events.add(event);
+            try {
+                if (includes(startDate, endDate, repetitionType, theDate)) {
+                    EventObject event = new EventObject(cursor.getString(1));
+                    event.setId(cursor.getInt(0));
+                    event.setColor(cursor.getInt(2));
+                    event.setRepetitionType(cursor.getInt(5));
+                    event.setAllDayEvent(cursor.getInt(6) != 0);
+                    event.setLocation(cursor.getString(7));
+                    event.setFromDate(startDate);
+                    event.setToDate(endDate);
+                    events.add(event);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         cursor.close();
@@ -158,9 +173,12 @@ public class MyDbHandler extends SQLiteOpenHelper {
             Date startDate = new Date(cursor.getLong(3));
             Date endDate = new Date(cursor.getLong(4));
             int repetitionType = cursor.getInt(5);
-
-            if (includes(startDate, endDate, repetitionType, theDate)) {
-                count += 1;
+            try {
+                if (includes(startDate, endDate, repetitionType, theDate)) {
+                    count += 1;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         cursor.close();
@@ -190,7 +208,7 @@ public class MyDbHandler extends SQLiteOpenHelper {
         db.close();
     }
 
-    private boolean includes(Date startDate, Date endDate, int repetitionType, Date theDate) {
+    private boolean includes(Date startDate, Date endDate, int repetitionType, Date theDate) throws Exception {
         Calendar calStart = Calendar.getInstance();
         calStart.setTime(startDate);
         calStart.set(calStart.get(Calendar.YEAR), calStart.get(Calendar.MONTH), calStart.get(Calendar.DAY_OF_MONTH), 0, 0);
@@ -207,21 +225,81 @@ public class MyDbHandler extends SQLiteOpenHelper {
         } else if (repetitionType == 1) {
             return true;
         } else if (repetitionType == 2) {
-            int dateDiff = DateConverter.getDateDiff(startDate, theDate);
+            long dateDiff = DateConverter.getDateDiff(startDate, theDate);
             return dateDiff % 7 == 0;
         } else if (repetitionType == 3) {
             calStart.setTime(startDate);
+            DateObject tempDate = new DateObject(
+                    calStart.get(Calendar.DAY_OF_MONTH),
+                    calStart.get(Calendar.MONTH) + 1,
+                    calStart.get(Calendar.YEAR));
+            DateObject lunarStartDate = DateConverter.convertSolar2Lunar(tempDate, MainActivity.timeZone);
             Calendar cal = Calendar.getInstance();
             cal.setTime(theDate);
-            return calStart.get(Calendar.DAY_OF_MONTH) == cal.get(Calendar.DAY_OF_MONTH);
+            tempDate = new DateObject(
+                    cal.get(Calendar.DAY_OF_MONTH),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.YEAR));
+            DateObject theLunarDate = DateConverter.convertSolar2Lunar(tempDate, MainActivity.timeZone);
+            return lunarStartDate.getDay() == theLunarDate.getDay();
         } else if (repetitionType == 4) {
             calStart.setTime(startDate);
+            DateObject tempDate = new DateObject(
+                    calStart.get(Calendar.DAY_OF_MONTH),
+                    calStart.get(Calendar.MONTH) + 1,
+                    calStart.get(Calendar.YEAR));
+            DateObject lunarStartDate = DateConverter.convertSolar2Lunar(tempDate, MainActivity.timeZone);
             Calendar cal = Calendar.getInstance();
             cal.setTime(theDate);
-            return calStart.get(Calendar.DAY_OF_MONTH) == cal.get(Calendar.DAY_OF_MONTH) &&
-                    calStart.get(Calendar.MONTH) == cal.get(Calendar.MONTH);
+            tempDate = new DateObject(
+                    cal.get(Calendar.DAY_OF_MONTH),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.YEAR));
+            DateObject theLunarDate = DateConverter.convertSolar2Lunar(tempDate, MainActivity.timeZone);
+            return lunarStartDate.getMonth() == theLunarDate.getMonth() &&
+                    lunarStartDate.getDay() == theLunarDate.getDay();
         } else {
             return false;
+        }
+    }
+
+    public void addCommonEvents(InputStream stream) {
+        try {
+            InputStreamReader sr = new InputStreamReader(stream);
+            BufferedReader br = new BufferedReader(sr);
+            String line = br.readLine();
+            while (line != null) {
+                String[] parts = line.split(";");
+                Calendar cal = Calendar.getInstance();
+                EventObject event = new EventObject(parts[0]);
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.FRENCH);
+                Date result = df.parse(parts[1]);
+                cal.setTime(result);
+                DateObject lunarDate = new DateObject(cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH) + 1, 2000);
+                result = df.parse(parts[2]);
+                cal.setTime(result);
+                DateObject toLunarDate = new DateObject(cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH) + 1, 2000);
+                DateObject solarDate = DateConverter.convertLunar2Solar(lunarDate, MainActivity.timeZone);
+                DateObject toSolarDate = DateConverter.convertLunar2Solar(toLunarDate, MainActivity.timeZone);
+                cal.set(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+                event.setFromDate(cal.getTime());
+                cal.set(toSolarDate.getYear(), toSolarDate.getMonth() - 1, toSolarDate.getDay());
+                event.setToDate(cal.getTime());
+                boolean allDayEvent = Boolean.parseBoolean(parts[3]);
+                event.setAllDayEvent(allDayEvent);
+                int repetition = Integer.parseInt(parts[4]);
+                event.setRepetitionType(repetition);
+                event.setLocation(parts[5]);
+                if (!parts[6].equals("1")) {
+                    event.setColor(R.color.colorBlue);
+                }
+                addEvent(event);
+
+                line = br.readLine();
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

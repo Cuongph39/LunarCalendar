@@ -1,5 +1,6 @@
 package com.vanpt.lunarcalendar.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -12,6 +13,7 @@ import android.widget.Button;
 
 import com.vanpt.lunarcalendar.R;
 import com.vanpt.lunarcalendar.interfaces.IDialogEventListener;
+import com.vanpt.lunarcalendar.interfaces.IOnColorSetListener;
 
 /**
  * Created by vanpt on 11/26/2016.
@@ -20,34 +22,43 @@ import com.vanpt.lunarcalendar.interfaces.IDialogEventListener;
 public class EventColorFragment extends DialogFragment implements View.OnClickListener{
 
     private int selectedColor = R.color.colorRed;
+    private int tempColor = R.color.colorRed;
     IDialogEventListener mListener;
+    IOnColorSetListener mColorSetListener;
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.btnRed) {
-            selectedColor = R.color.colorRed;
+            tempColor = R.color.colorRed;
         } else if (id == R.id.btnBlue) {
-            selectedColor = R.color.colorBlue;
+            tempColor = R.color.colorBlue;
         } else if (id == R.id.btnBrown) {
-            selectedColor = R.color.colorBrown;
+            tempColor = R.color.colorBrown;
         } else if (id == R.id.btnGreen) {
-            selectedColor = R.color.colorGreen;
+            tempColor = R.color.colorGreen;
         } else if (id == R.id.btnLightBlue) {
-            selectedColor = R.color.colorLightBlue;
+            tempColor = R.color.colorLightBlue;
         } else if (id == R.id.btnOrange) {
-            selectedColor = R.color.colorOrange;
+            tempColor = R.color.colorOrange;
         } else if (id == R.id.btnPink) {
-            selectedColor = R.color.colorPink;
+            tempColor = R.color.colorPink;
         } else  if (id == R.id.btnPurple) {
-            selectedColor = R.color.colorPurple;
+            tempColor = R.color.colorPurple;
         } else if (id == R.id.btnYellow) {
-            selectedColor = R.color.colorYellow;
+            tempColor = R.color.colorYellow;
         }
     }
 
     public int getSelectedColor() {
         return selectedColor;
+    }
+    public void setSelectedColor(int value) {
+        selectedColor = value;
+    }
+
+    public void setColorSetListener(IOnColorSetListener listener) {
+        this.mColorSetListener = listener;
     }
 
     @Override
@@ -78,6 +89,8 @@ public class EventColorFragment extends DialogFragment implements View.OnClickLi
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        selectedColor = tempColor;
+                        mColorSetListener.onColorSet(selectedColor);
                         mListener.onDialogPositiveClick(EventColorFragment.this);
                     }
                 })
@@ -97,6 +110,17 @@ public class EventColorFragment extends DialogFragment implements View.OnClickLi
             mListener = (IDialogEventListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
+                    + " must implement IDialogEventListener");
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (IDialogEventListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
                     + " must implement IDialogEventListener");
         }
     }

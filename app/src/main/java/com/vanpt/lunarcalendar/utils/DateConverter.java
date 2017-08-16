@@ -86,9 +86,23 @@ public final class DateConverter {
         return isLeap;
     }
 
-    public static int getDateDiff(Date date1, Date date2) {
-        long diffInMillies = date2.getTime() - date1.getTime();
-        return (int)(Math.abs(diffInMillies))/(1000*60*60*24);
+    public static long getDateDiff(Date date1, Date date2) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date1);
+        cal.set(Calendar.HOUR_OF_DAY, 1);
+        cal.set(Calendar.MINUTE, 1);
+        cal.set(Calendar.SECOND, 1);
+        cal.set(Calendar.MILLISECOND, 1);
+        Date d1 = cal.getTime();
+        cal.setTime(date2);
+        cal.set(Calendar.HOUR_OF_DAY, 1);
+        cal.set(Calendar.MINUTE, 1);
+        cal.set(Calendar.SECOND, 1);
+        cal.set(Calendar.MILLISECOND, 1);
+        Date d2 = cal.getTime();
+        long diffInMillies = d2.getTime() - d1.getTime();
+        long diff = (Math.abs(diffInMillies))/(1000*60*60*24);
+        return diff;
     }
 
     public static String convertToCanChiDay(int day, int month, int year) {

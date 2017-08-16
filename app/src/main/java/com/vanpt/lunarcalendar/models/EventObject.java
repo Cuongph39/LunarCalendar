@@ -87,7 +87,7 @@ public class EventObject {
         this.repetitionType = repetitionType;
     }
 
-    public void setRepititionType(int value) {
+    public void setRepetitionType(int value) {
         switch (value) {
             case 0:
                 this.repetitionType = RepetitionTypeEnum.ONCE;

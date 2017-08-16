@@ -30,9 +30,9 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
     private static final String ARG_YEAR = "year";
     private static final String ARG_ISCURRENT = "isCurrent";
 
-    private int mDay;
-    private int mMonth;
-    private int mYear;
+    private int mDay = 0;
+    private int mMonth = 0;
+    private int mYear = 0;
     private boolean mIsCurrent;
     private EventObject[] events;
     private boolean isSelected = false;
@@ -63,23 +63,14 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
         return fragment;
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() == null) {
+    public void update(int dd, int mm, int yyyy, boolean isCurrent) {
+        mDay = dd;
+        mMonth = mm;
+        mYear = yyyy;
+        mIsCurrent = isCurrent;
+        if (view == null) {
             return;
         }
-        mDay = getArguments().getInt(ARG_DAY);
-        mMonth = getArguments().getInt(ARG_MONTH);
-        mYear = getArguments().getInt(ARG_YEAR);
-        mIsCurrent = getArguments().getBoolean(ARG_ISCURRENT);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View  view = inflater.inflate(R.layout.fragment_month_day, container, false);
-        this.view = view;
         View rootView = view.findViewById(R.id.rootLayoutMonthDayFrag);
         LinearLayout gridLayout = (LinearLayout) view.findViewById(R.id.gridLayoutMonthDayFrag);
         gridLayout.setOnClickListener(this);
@@ -89,18 +80,19 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
         MainActivity activity = (MainActivity) this.getActivity();
         try {
             DateObject date = new DateObject(mDay, mMonth, mYear);
-            DateObject lunar = DateConverter.convertSolar2Lunar(date, activity.getTimeZone());
             MyDbHandler dbHandler = new MyDbHandler(activity, null, null, 1);
-            events = dbHandler.findEvent(lunar.getDay(), lunar.getMonth(), lunar.getYear());
-            if (events.length > 0) {
-                LinearLayout eventView = (LinearLayout) view.findViewById(R.id.layoutMonthDayEvent);
+            events = dbHandler.findEvent(date.getDay(), date.getMonth(), date.getYear());
+            LinearLayout eventView = (LinearLayout) view.findViewById(R.id.layoutMonthDayEvent);
+            eventView.removeAllViews();
+            int min = Math.min(3, events.length);
+            for (int i = 0; i < min; i++) {
                 TextView tv = new TextView(activity);
-                //ViewGroup.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                //tv.setLayoutParams(lp);
+                LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                llp.setMargins(1, 1, 1, 1);
+                tv.setLayoutParams(llp);
                 tv.setHeight(10);
-                tv.setWidth(10);
-                tv.setBackgroundColor(Color.RED);
-
+                tv.setWidth(20);
+                tv.setBackgroundColor(getResources().getColor(events[i].getColor()));
                 eventView.addView(tv);
             }
             if (mDay == activity.getTodaySolarDate().getDay() &&
@@ -108,6 +100,10 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
                     mYear == activity.getTodaySolarDate().getYear()) {
                 rootView.setBackgroundColor(activity.getResources().getColor(R.color.colorToday));
                 gridLayout.setBackgroundColor(activity.getResources().getColor(R.color.colorToday));
+            }
+            else {
+                rootView.setBackgroundColor(Color.WHITE);
+                gridLayout.setBackgroundColor(Color.WHITE);
             }
 
             DateObject selected = activity.getSelectedSolarDate();
@@ -117,7 +113,7 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
                 setSelected(true);
             }
             DateObject d = new DateObject(mDay, mMonth, mYear, 0);
-            lunar = DateConverter. convertSolar2Lunar(d, activity.getTimeZone());
+            DateObject lunar = DateConverter. convertSolar2Lunar(d, activity.getTimeZone());
             String lunarDay = lunar.getDay() + "";
             if (lunar.getDay() == 1) {
                 lunarDay += "/" + lunar.getMonth();
@@ -139,6 +135,8 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
                 }
             }
             else {
+                textViewSolarDay.setTextColor(Color.GRAY);
+                textViewLunarDay.setTextColor(Color.GRAY);
                 String solarDay = mDay + "";
                 if (mDay == 1) {
                     solarDay += "/" + mMonth;
@@ -148,7 +146,31 @@ public class MonthDayFragment extends Fragment implements View.OnClickListener{
         } catch (Exception e) {
             Log.e("ERROR", e.toString());
         }
+    }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() == null) {
+            return;
+        }
+        if (mDay == 0) {
+            mDay = getArguments().getInt(ARG_DAY);
+        }
+        if (mMonth == 0) {
+            mMonth = getArguments().getInt(ARG_MONTH);
+        }
+        if (mYear == 0) {
+            mYear = getArguments().getInt(ARG_YEAR);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View  view = inflater.inflate(R.layout.fragment_month_day, container, false);
+        this.view = view;
+        update(mDay, mMonth, mYear, mIsCurrent);
         return view;
     }
 
