@@ -20,7 +20,6 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 
 import com.vanpt.lunarcalendar.R;
-import com.vanpt.lunarcalendar.adapters.EventRecyclerAdapter;
 import com.vanpt.lunarcalendar.data.MyDbHandler;
 import com.vanpt.lunarcalendar.fragments.EventPropertiesFragment;
 import com.vanpt.lunarcalendar.fragments.GoToLunarDateFragment;
@@ -57,6 +56,8 @@ public class MainActivity extends AppCompatActivity
     private BackgroundWorker backgroundWorker;
     private CommandInvoker commandInvoker = new CommandInvoker();
     private int selectedNavMenuItem;
+    private int previousSelectedNavMenuItem;
+    private boolean selectedNavMenuItemChanged = false;
     private ArrayList<EventObject> events = new ArrayList<>();
     private static final int UNIQUE_ID = 461984;
     private static final String NUMBER_OF_LAUNCHES = "numberOfLaunches";
@@ -104,10 +105,16 @@ public class MainActivity extends AppCompatActivity
             this.selectedSolarDate = selectedSolarDate;
         }
         try {
+            selectedNavMenuItemChanged = this.previousSelectedNavMenuItem != this.selectedNavMenuItem;
             commandInvoker.executeCommand(this.selectedNavMenuItem, this.selectedSolarDate);
+            this.previousSelectedNavMenuItem = this.selectedNavMenuItem;
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isSelectedNavMenuItemChanged() {
+        return selectedNavMenuItemChanged;
     }
 
     @Override
@@ -216,8 +223,11 @@ public class MainActivity extends AppCompatActivity
                         MainActivity.this.selectedSolarDate.setYear(year);
                         MainActivity.this.selectedSolarDate.setMonth(month + 1);
                         MainActivity.this.selectedSolarDate.setDay(day);
+                        MainActivity.this.selectedNavMenuItemChanged =
+                                MainActivity.this.selectedNavMenuItem != MainActivity.this.previousSelectedNavMenuItem;
                         MainActivity.this.commandInvoker.executeCommand(MainActivity.this.selectedNavMenuItem,
                                 MainActivity.this.selectedSolarDate);
+                        MainActivity.this.previousSelectedNavMenuItem = MainActivity.this.selectedNavMenuItem;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -240,14 +250,10 @@ public class MainActivity extends AppCompatActivity
         selectedNavMenuItem = id;
 
         try {
+            this.selectedNavMenuItemChanged =
+                    this.selectedNavMenuItem != this.previousSelectedNavMenuItem;
             commandInvoker.executeCommand(id, selectedSolarDate);
-//            if (id == R.id.nav_month) {
-//                commandInvoker.executeCommand(R.id.nav_month, selectedSolarDate);
-//            } else if (id == R.id.nav_day) {
-//                commandInvoker.executeCommand(id, selectedSolarDate);
-//            } else if (id == R.id.nav_agenda) {
-//
-//            }
+            this.previousSelectedNavMenuItem = this.selectedNavMenuItem;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -303,7 +309,10 @@ public class MainActivity extends AppCompatActivity
                 }
             }
             try {
+                this.selectedNavMenuItemChanged =
+                        this.selectedNavMenuItem != this.previousSelectedNavMenuItem;
                 this.commandInvoker.executeCommand(this.selectedNavMenuItem, this.selectedSolarDate);
+                this.previousSelectedNavMenuItem = this.selectedNavMenuItem;
             } catch (Exception e) {
                 e.printStackTrace();
             }

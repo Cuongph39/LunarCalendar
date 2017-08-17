@@ -44,10 +44,10 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
 
     @Override
     public void execute(DateObject date) throws Exception {
-
-        if (this.currentDate == null) {
-            this.currentDate = date;
-            ViewGroup contentMain = this.mainActivity.getContentMainView();
+        ViewGroup contentMain = this.mainActivity.getContentMainView();
+        this.currentDate = date;
+        if (this.mainActivity.isSelectedNavMenuItemChanged()) {
+            contentMain.removeAllViews();
             monthView = View.inflate(this.mainActivity, R.layout.layout_month, contentMain);
             final Button previousButton = (Button) monthView.findViewById(R.id.btnPreviousMonth);
             previousButton.setOnClickListener(this);
@@ -55,7 +55,6 @@ public class DisplayMonthViewCommand implements ICommand, View.OnClickListener {
             nextButton.setOnClickListener(this);
             genrateCalendar(date, monthView);
         }
-        this.currentDate = date;
         updateCalendar(date);
         final TextView textViewMonth = (TextView) monthView.findViewById(R.id.textViewMonth);
         textViewMonth.setText("Tháng " + date.getMonth() + ", " + date.getYear());
